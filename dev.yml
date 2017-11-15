@@ -1,0 +1,19 @@
+name: transfer-jobs
+
+up:
+  - ruby:
+      version: 2.3.1
+  - railgun
+  - bundler
+
+commands:
+  test:
+    syntax:
+      argument: file
+      optional: args...
+    desc: 'run all tests'
+    run: script/test "$@"
+
+packages:
+  - git@github.com:Shopify/dev-shopify.git
+
