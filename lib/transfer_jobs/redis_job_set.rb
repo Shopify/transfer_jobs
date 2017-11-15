@@ -29,7 +29,7 @@ module TransferJobs
         queues.each do |name|
           redis.llen(queue_key(name))
         end
-      end.sum
+      end.reduce(:+)
     end
   end
 end

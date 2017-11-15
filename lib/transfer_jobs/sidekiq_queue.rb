@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require 'redis_queue'
+require 'transfer_jobs/redis_queue'
 module TransferJobs
   class SidekiqQueue < RedisQueue
     def batch
@@ -32,7 +32,7 @@ module TransferJobs
     end
 
     def decode(queue_item)
-      Sidekiq::Job.new(queue_item, key)
+      ::Sidekiq::Job.new(queue_item, key)
     end
   end
 end

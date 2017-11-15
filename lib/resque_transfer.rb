@@ -20,7 +20,7 @@ class ResqueTransfer
   def recover
     with_lock(source_redis) do
       with_progress do |progress|
-        recover_queued_jobs(progress).transfer(&method(:filter))
+        recover_queued_jobs(progress).transfer(&method(:queue_transfer))
         recover_old_scheduled_jobs(progress).transfer(&method(:filter))
         recover_new_scheduled_jobs(progress).transfer(&method(:filter))
       end
@@ -32,6 +32,18 @@ class ResqueTransfer
   end
 
   private
+
+  def queue_transfer(queues)
+    raise Interrupt if QueueMover.shutdown
+    queues.each do |queue, _|
+      QueueMover.new(
+        source: ResqueQueue.new(redis: source.redis, key: source.queue_key(queue)),
+        dest:   ResqueQueue.new(redis: dest.redis, key: dest.queue_key(queue)),
+        logger: logger,
+        progress: progress,
+      ).transfer(&method(:filter))
+    end
+  end
 
   def recover_queued_jobs(progress)
     MultiQueueMover.new(
