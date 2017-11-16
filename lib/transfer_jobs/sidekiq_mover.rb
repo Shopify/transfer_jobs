@@ -77,17 +77,23 @@ module TransferJobs
       # for us to then acquire / release.
       class Locker
         include SidekiqUniqueJobs::OptionsWithFallback
-
-        def initialize(item)
+        attr_reader :worker_class, :item
+        def initialize(item, redis)
           @item = item
+          @worker_class = item['class']
+          @pool = ConnectionPool.new { redis }
+        end
+
+        def lock
+          lock_class.new(item, @pool)
         end
       end
 
       def acquire_locks_in_dest(jobs)
         jobs.select do |job, _|
-          lock = Locker.new(job.item)
+          locker = Locker.new(job.item, dest.redis)
 
-          if lock.lock(:client, dest.redis)
+          if locker.lock.lock(:client)
             true
           else
             logger.warn "Dropping job_id=#{job.job_id} with lock owned by other_job_id=#{lock.owner_token}"
@@ -98,8 +104,8 @@ module TransferJobs
 
       def release_locks_in_source(jobs)
         jobs.each do |job, _|
-          lock = Lock.new(job.item)
-          lock.unlock(:client, source.redis)
+          locker = Locker.new(job.item, source.redis)
+          locker.lock.unlock(:server)
         end
       end
 
