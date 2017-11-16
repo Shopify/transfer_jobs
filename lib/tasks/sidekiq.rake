@@ -1,3 +1,14 @@
+# frozen_string_literal: true
+
+# This task is meant to be included inside of your application.
+
+# It provides a `sidekiq:transfer` task to help you recover jobs from your
+# sidekiq redis instance.
+
+# Currently we can transfer jobs from sidekiq and sidekiq-unique-jobs. We also
+# provide optional progress tracking through the `progressrus` gem. These features
+# are written so that they will activate based on available gems.
+
 namespace :sidekiq do
   task :transfer do
     require 'logger'
