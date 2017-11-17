@@ -14,12 +14,16 @@ Dir[File.join(File.expand_path("../support/**/*.rb", __FILE__))].each do |suppor
   require support
 end
 
+def redis_url
+  ENV['CI'] ? 'redis://127.0.0.1' : 'redis://transfer-jobs.railgun'
+end
+
 Sidekiq.configure_client do |config|
-  config.redis = { url: 'redis://transfer-jobs.railgun' }
+  config.redis = { url: redis_url }
 end
 
 Sidekiq.configure_server do |config|
-  config.redis = { url: 'redis://transfer-jobs.railgun' }
+  config.redis = { url: redis_url }
 end
 
 class TransferJobsTestCase < Minitest::Test
