@@ -47,11 +47,11 @@ module TransferJobs
       end
 
       logger.info "Finished recovering single queue. queue_key=#{source.key}" \
-        " num_moved=#{num_moved} num_dropped=#{num_dropped}"
+      " num_moved=#{num_moved} num_dropped=#{num_dropped}"
       num_moved
     rescue StopIteration, Interrupt
       logger.error "Transfer of queue '#{@source.key}' was stopped" \
-        " after transferring #{num_moved} jobs to the target redis"
+      " after transferring #{num_moved} jobs to the target redis"
       raise
     end
 
@@ -92,11 +92,10 @@ module TransferJobs
       def acquire_locks_in_dest(jobs)
         jobs.select do |job, _|
           locker = Locker.new(job.item, dest.redis)
-
-          if locker.lock.lock(:client)
+          if with_sidekiq_redis(dest.redis) { locker.lock.lock(:client) }
             true
           else
-            logger.warn "Dropping job_id=#{job.job_id} with lock owned by other_job_id=#{lock.owner_token}"
+            logger.warn "Dropping job_id=#{job.jid} with couldn't acquire lock with unique_key=#{locker.lock.unique_key}"
             false
           end
         end
@@ -105,8 +104,16 @@ module TransferJobs
       def release_locks_in_source(jobs)
         jobs.each do |job, _|
           locker = Locker.new(job.item, source.redis)
-          locker.lock.unlock(:server)
+          with_sidekiq_redis(source.redis) { locker.lock.unlock(:server) }
         end
+      end
+
+      def with_sidekiq_redis(redis)
+        old_redis = ::Sidekiq.redis_pool
+        ::Sidekiq.redis = redis.client.options
+        yield
+      ensure
+        ::Sidekiq.redis = old_redis
       end
 
       def handle_locked_jobs(jobs_to_move)

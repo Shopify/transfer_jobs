@@ -34,6 +34,7 @@ class TransferJobs::SidekiqQueueTest < TransferJobsTestCase
     queue = TransferJobs::SidekiqQueue.new(redis: redis, batch_size: 1, key: 'queue:default')
     items = []
     batch_count = 0
+
     queue.in_batches do |batch|
       batch_count += 1
       items += batch
