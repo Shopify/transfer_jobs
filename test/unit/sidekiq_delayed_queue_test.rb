@@ -49,5 +49,4 @@ class TransferJobs::SidekiqDelayedQueueTest < TransferJobsTestCase
 
     assert_equal [60, 120, 180].map { |time| (base_time + time).to_f }, items.map(&:last)
   end
-
 end
