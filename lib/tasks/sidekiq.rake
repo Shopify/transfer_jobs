@@ -35,6 +35,8 @@ namespace :sidekiq do
 
     include TransferJobs
 
+    logger.info "Starting transfer of jobs from #{ENV['SOURCE_URL']} to #{ENV['DEST_URL']}"
+
     Util.with_progress do |progress|
       multi_mover = MultiQueueMover.new(
         source: RedisJobSet.new(redis: source_redis),
