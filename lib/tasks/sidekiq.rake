@@ -43,14 +43,29 @@ namespace :sidekiq do
         dest: RedisJobSet.new(redis: dest_redis),
         logger: logger,
         progress: progress,
-        )
+      )
 
       delayed_queue = SidekiqMover.new(
         source: SidekiqDelayedQueue.new(redis: source_redis),
-        dest:   SidekiqDelayedQueue.new(redis: dest_redis),
+        dest: SidekiqDelayedQueue.new(redis: dest_redis),
         logger: logger,
         progress: progress
-        )
+      )
+      # https://github.com/mperham/sidekiq/blob/63ee43353bd3b753beb0233f64865e658abeb1c3/lib/sidekiq/api.rb#L641
+      retry_queue = SidekiqMover.new(
+        source: SidekiqDelayedQueue.new(key: 'retry', redis: source_redis),
+        dest: SidekiqDelayedQueue.new(key: 'retry', redis: dest_redis),
+        logger: logger,
+        progress: progress,
+      )
+
+      # https://github.com/mperham/sidekiq/blob/63ee43353bd3b753beb0233f64865e658abeb1c3/lib/sidekiq/api.rb#L656
+      dead_queue = SidekiqMover.new(
+        source: SidekiqDelayedQueue.new(key: 'dead', redis: source_redis),
+        dest: SidekiqDelayedQueue.new(key: 'dead', redis: dest_redis),
+        logger: logger,
+        progress: progress,
+      )
 
       multi_mover.transfer do |queues|
         raise Interrupt if SidekiqMover.shutdown
@@ -65,6 +80,8 @@ namespace :sidekiq do
       end
 
       delayed_queue.transfer(&method(:filter))
+      retry_queue.transfer(&method(:filter))
+      dead_queue.transfer(&method(:filter))
     end
   end
 end
