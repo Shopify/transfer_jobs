@@ -13,7 +13,3 @@ commands:
       optional: args...
     desc: 'run all tests'
     run: script/test "$@"
-
-packages:
-  - git@github.com:Shopify/dev-shopify.git
-
