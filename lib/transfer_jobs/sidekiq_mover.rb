@@ -110,7 +110,7 @@ module TransferJobs
 
       def with_sidekiq_redis(redis)
         old_redis = ::Sidekiq.redis_pool
-        ::Sidekiq.redis = redis.client.options
+        ::Sidekiq.redis = ConnectionPool.new(size: 1) { redis }
         yield
       ensure
         ::Sidekiq.redis = old_redis
