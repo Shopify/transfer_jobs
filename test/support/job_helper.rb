@@ -18,7 +18,8 @@ module JobHelper
   end
 
   class LockedJob < SimpleJob
-    sidekiq_options unique: :until_executed
+    sidekiq_options unique: :until_executed,
+                    unique_args: ->(args) { [] }
   end
 
   class Mgr

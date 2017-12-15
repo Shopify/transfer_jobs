@@ -31,13 +31,13 @@ class TransferJobs::SidekiqMoverTest < TransferJobsTestCase
     LockedJob.perform_async(num: 1)
 
     with_sidekiq_redis(@dest) do
-      LockedJob.perform_async(num: 1)
+      LockedJob.perform_async(num: 2)
     end
 
     sidekiq_mover('default')
 
     work_off_jobs(@dest)
-    assert_equal [1], JobHelper.job_result_queue.map {|arg| arg[0]['num']}
+    assert_equal [2], JobHelper.job_result_queue.map {|arg| arg[0]['num']}
   end
 
   def test_acquires_lock_in_target_dc
@@ -46,7 +46,7 @@ class TransferJobs::SidekiqMoverTest < TransferJobsTestCase
     sidekiq_mover('default')
 
     with_sidekiq_redis(@dest) do
-      LockedJob.perform_async(num: 1)
+      LockedJob.perform_async(num: 2)
     end
 
     work_off_jobs(@dest)
@@ -58,17 +58,13 @@ class TransferJobs::SidekiqMoverTest < TransferJobsTestCase
 
     sidekiq_mover('default')
 
-    LockedJob.perform_async(num: 1)
+    LockedJob.perform_async(num: 2)
 
     work_off_jobs(@dest)
     assert_equal [1], JobHelper.job_result_queue.map {|arg| arg[0]['num']}
 
     work_off_jobs(@source)
-    assert_equal [1, 1], JobHelper.job_result_queue.map {|arg| arg[0]['num']}
-  end
-
-  def test_handles_interruptions
-
+    assert_equal [1, 2], JobHelper.job_result_queue.map {|arg| arg[0]['num']}
   end
 
   private
