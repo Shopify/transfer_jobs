@@ -41,6 +41,14 @@ TransferJobs supports common Sidekiq job configurations. The provided classes an
 - sidekiq-unique-jobs ~> 5.0.5
 - sidekiq-scheduler ?
 
+### Caveats
+
+- https://github.com/mperham/sidekiq/wiki/Pro-Expiring-Jobs
+- https://github.com/mperham/sidekiq/wiki/Pro-Reliability-Client
+- https://github.com/mperham/sidekiq/wiki/Pro-Reliability-Server
+- https://github.com/mperham/sidekiq/wiki/Reliability
+- https://github.com/mperham/sidekiq/wiki/Ent-Periodic-Jobs
+
 ## Usage
 
 Transfers can be initiated by running the relevant rake task with the correct parameters.
