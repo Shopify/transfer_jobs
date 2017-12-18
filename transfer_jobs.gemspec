@@ -7,10 +7,11 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.authors       = ["Xavier Denis"]
 
+  gem.add_runtime_dependency "redis"
+  gem.add_runtime_dependency "rake", "~> 10.0"
+
   gem.add_development_dependency "pry"
-  gem.add_development_dependency "redis"
   gem.add_development_dependency "sidekiq"
   gem.add_development_dependency "sidekiq-unique-jobs", "~> 5.0.10.0"
   gem.add_development_dependency "bundler", "~> 1.7"
-  gem.add_development_dependency "rake", "~> 10.0"
 end

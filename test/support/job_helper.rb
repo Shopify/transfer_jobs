@@ -32,7 +32,7 @@ module JobHelper
 
   class Mgr
     def options
-      { queues: ['default'], job_logger: Logger.new('/dev/null') }
+      { queues: ['default'] }
     end
   end
 

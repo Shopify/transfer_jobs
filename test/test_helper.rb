@@ -1,17 +1,12 @@
 require 'bundler/setup'
 
-require 'sidekiq'
-require 'sidekiq-unique-jobs'
+Bundler.require(:default, :test, :development)
 
 require 'minitest/autorun'
 require 'minitest/unit'
-require 'timecop'
 
 require 'transfer_jobs'
 require 'transfer_jobs/sidekiq'
-
-require 'byebug'
-require 'progressrus'
 
 Dir[File.join(File.expand_path("../support/**/*.rb", __FILE__))].each do |support|
   require support
