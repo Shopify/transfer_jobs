@@ -17,7 +17,7 @@ import 'transfer_jobs/tasks/sidekiq.rake'
 Resque:
 ```rake
 # not yet implemented
-import 'transfer_jobs/tasks/resquerake'
+import 'transfer_jobs/tasks/resque.rake'
 
 ```
 
@@ -27,7 +27,7 @@ The rake tasks have secondary dependencies implied by their names. They are deta
 
 There are several optional dependencies that enable quality-of-life features.
 
-- Progresrus: Including the `progressrus` gem enables progress tracking during your transfers.
+- Progressrus: Including the `progressrus` gem enables progress tracking during your transfers.
 
 ## Resque
 
@@ -35,7 +35,7 @@ TBD
 
 ## Sidekiq
 
-TransferJobs supports common Sidekiq job configurations. The provided classes and modules should enable the construction of more comlex or atypical flows. The provided `sidekiq:transfer` rake task supports the following out-of-the-box:
+TransferJobs supports common Sidekiq job configurations. The provided classes and modules should enable the construction of more complex or atypical flows. The provided `sidekiq:transfer` rake task supports the following out-of-the-box:
 
 - sidekiq ~> 5.0
 - sidekiq-unique-jobs ~> 5.0.5
@@ -53,13 +53,13 @@ TransferJobs supports common Sidekiq job configurations. The provided classes an
 
 Transfers can be initiated by running the relevant rake task with the correct parameters.
 
-For example, to transfer a sidekiq application's tasks you would run:
+For example, to transfer a Sidekiq application's tasks you would run:
 
 ```bash
 bundle exec rake sidekiq:transfer SOURCE=redis://facebook-commerce.railgun/0 SOURCE=redis://facebook-commerce.railgun/1
 ```
 
-This will transfer all jobs from the `0` db to the `1` db on the redis host `facebook-commerce.railgun`
+This will transfer all jobs from the `0` db to the `1` db on the Redis host `facebook-commerce.railgun`
 
 ## Failure
 
