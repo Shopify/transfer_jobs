@@ -68,6 +68,29 @@ class TransferJobs::SidekiqMoverTest < TransferJobsTestCase
   end
 
   def test_can_move_retry_queue
+    retry_queue_name = 'retry'
+
+    CrashingJob.perform_async(num: 1)
+    CrashingJob.perform_async(num: 2)
+
+    2.times do
+      begin
+        work_off_jobs(@source)
+      rescue CrashingJob::Error
+      end
+    end
+
+    assert_equal 2, @source.zcard(retry_queue_name)
+
+    sidekiq_delayed_mover(retry_queue_name)
+
+    assert_equal 0, @source.zcard(retry_queue_name)
+    assert_equal 2, @dest.zcard(retry_queue_name)
+  end
+
+  def test_can_move_dead_queue
+    dead_queue_name = 'dead'
+
     CrashingJob.perform_async(num: 1)
 
     begin
@@ -75,14 +98,20 @@ class TransferJobs::SidekiqMoverTest < TransferJobsTestCase
     rescue CrashingJob::Error
     end
 
-    assert_equal 1, @source.zcard('retry')
+    Timecop.freeze(Time.now + 60) do
+      handle_delayed_jobs
+      begin
+        work_off_jobs(@source)
+      rescue CrashingJob::Error
+      end
+    end
 
-    sidekiq_delayed_mover('retry')
-    assert_equal 1, @dest.zcard('retry')
-  end
+    assert_equal 1, @source.zcard(dead_queue_name)
 
-  def test_can_move_dest_queue
+    sidekiq_delayed_mover(dead_queue_name)
 
+    assert_equal 0, @source.zcard(dead_queue_name)
+    assert_equal 1, @dest.zcard(dead_queue_name)
   end
 
   private
