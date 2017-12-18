@@ -22,9 +22,17 @@ module JobHelper
                     unique_args: ->(args) { [] }
   end
 
+  class CrashingJob < SimpleJob
+    class Error < StandardError ; end
+    def perform(*)
+      super
+      raise Error, "This job crashes"
+    end
+  end
+
   class Mgr
     def options
-      { queues: ['default']}
+      { queues: ['default'], job_logger: Logger.new('/dev/null') }
     end
   end
 

@@ -51,6 +51,7 @@ namespace :sidekiq do
         logger: logger,
         progress: progress
       )
+
       # https://github.com/mperham/sidekiq/blob/63ee43353bd3b753beb0233f64865e658abeb1c3/lib/sidekiq/api.rb#L641
       retry_queue = SidekiqMover.new(
         source: SidekiqDelayedQueue.new(key: 'retry', redis: source_redis),

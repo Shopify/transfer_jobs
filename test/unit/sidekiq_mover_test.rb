@@ -67,14 +67,40 @@ class TransferJobs::SidekiqMoverTest < TransferJobsTestCase
     assert_equal [1, 2], JobHelper.job_result_queue.map {|arg| arg[0]['num']}
   end
 
+  def test_can_move_retry_queue
+    CrashingJob.perform_async(num: 1)
+
+    begin
+      work_off_jobs(@source)
+    rescue CrashingJob::Error
+    end
+
+    assert_equal 1, @source.zcard('retry')
+
+    sidekiq_delayed_mover('retry')
+    assert_equal 1, @dest.zcard('retry')
+  end
+
+  def test_can_move_dest_queue
+
+  end
+
   private
 
+  def sidekiq_delayed_mover(queue)
+    TransferJobs::SidekiqMover.new(
+      source: TransferJobs::SidekiqDelayedQueue.new(key: queue, redis: @source),
+      dest: TransferJobs::SidekiqDelayedQueue.new(key: queue, redis: @dest),
+      logger: Logger.new('/dev/null'),
+      progress: Progressrus.new,
+    ).transfer { true }
+  end
+
   def sidekiq_mover(queue)
-    require 'progressrus'
     TransferJobs::SidekiqMover.new(
       source: TransferJobs::SidekiqQueue.new(redis: @source, key: "queue:#{queue}"),
       dest:   TransferJobs::SidekiqQueue.new(redis: @dest, key: "queue:#{queue}"),
-      logger: Logger.new($stdout),
+      logger: Logger.new('/dev/null'),
       progress: Progressrus.new,
     ).transfer { true }
   end

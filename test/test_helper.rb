@@ -1,3 +1,5 @@
+require 'bundler/setup'
+
 require 'sidekiq'
 require 'sidekiq-unique-jobs'
 
@@ -9,6 +11,7 @@ require 'transfer_jobs'
 require 'transfer_jobs/sidekiq'
 
 require 'byebug'
+require 'progressrus'
 
 Dir[File.join(File.expand_path("../support/**/*.rb", __FILE__))].each do |support|
   require support
@@ -25,6 +28,8 @@ end
 Sidekiq.configure_server do |config|
   config.redis = { url: redis_url }
 end
+
+Sidekiq::Logging.logger = nil
 
 class TransferJobsTestCase < Minitest::Test
   def teardown
