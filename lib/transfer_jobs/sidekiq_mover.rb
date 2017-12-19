@@ -1,60 +1,6 @@
 # frozen_string_literal: true
 module TransferJobs
-  class SidekiqMover
-    # TODO(zen): expose batch api in Status, Locking, LockQueue and use that instead
-    attr_reader :source, :dest, :logger, :progress
-
-    def initialize(source:, dest:, logger:, progress:)
-      @source = source
-      @dest = dest
-      @logger = logger
-      @progress = progress # remove that
-    end
-
-    def self.shutdown=(bool)
-      @shutdown = bool
-    end
-
-    def self.shutdown
-      @shutdown
-    end
-
-    def transfer(&filter)
-      logger.info "Resuming a transfer of '#{source.key}', re-run to move currently enqueued jobs" if source.recovery_already_exists?
-      return 0 unless source.move_queue_to_recovery!
-
-      logger.info "Recovering single queue. key=#{source.key}"
-      num_moved = 0
-      num_dropped = 0
-
-      source.in_batches do |batch|
-        raise Interrupt if self.class.shutdown
-
-        jobs_to_move = batch.select do |job, _|
-          progress.tick
-          filter.call(job)
-        end
-
-        moved, dropped = move_batch_to_dest(jobs_to_move)
-
-        source.redis.multi do
-          source.reenqueue(batch - jobs_to_move)
-          source.trim
-        end
-
-        num_moved += moved
-        num_dropped += dropped
-      end
-
-      logger.info "Finished recovering single queue. queue_key=#{source.key}" \
-      " num_moved=#{num_moved} num_dropped=#{num_dropped}"
-      num_moved
-    rescue StopIteration, Interrupt
-      logger.error "Transfer of queue '#{@source.key}' was stopped" \
-      " after transferring #{num_moved} jobs to the target redis"
-      raise
-    end
-
+  class SidekiqMover < QueueMover
     def move_batch_to_dest(jobs_to_move)
       jobs_to_append, failed_to_lock = handle_locked_jobs(jobs_to_move)
 
@@ -65,7 +11,7 @@ module TransferJobs
 
     private
 
-    # We only support SidekiqUniqueJobs <= 5.0.5
+    # We only support SidekiqUniqueJobs <= 5.0.10
     # If it isn't available provide a no-op version of `handle_locked_jobs`
     unless defined?(SidekiqUniqueJobs)
       def handle_locked_jobs(jobs_to_move)
