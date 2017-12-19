@@ -22,13 +22,29 @@ module JobHelper
                     unique_args: ->(args) { [] }
   end
 
+  class CrashingJob < SimpleJob
+    sidekiq_options retry: 1
+
+    class Error < StandardError ; end
+    def perform(*)
+      super
+      raise Error, "This job crashes"
+    end
+  end
+
   class Mgr
     def options
-      { queues: ['default']}
+      { queues: ['default'] }
     end
   end
 
   require 'sidekiq/processor'
+  require 'sidekiq/scheduled'
+
+  def handle_delayed_jobs
+    Sidekiq::Scheduled::Poller.new.enqueue
+  end
+
   def work_off_jobs(redis)
     mgr = Mgr.new
     with_sidekiq_redis(redis) do
