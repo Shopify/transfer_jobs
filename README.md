@@ -31,23 +31,18 @@ There are several optional dependencies that enable quality-of-life features.
 
 ## Resque
 
-TBD
+Resque support is currently in the works.
 
 ## Sidekiq
 
 TransferJobs supports common Sidekiq job configurations. The provided classes and modules should enable the construction of more complex or atypical flows. The provided `sidekiq:transfer` rake task supports the following out-of-the-box:
 
 - sidekiq ~> 5.0
-- sidekiq-unique-jobs ~> 5.0.5
-- sidekiq-scheduler ?
+- sidekiq-unique-jobs ~> 5.0.10
 
 ### Caveats
 
-- https://github.com/mperham/sidekiq/wiki/Pro-Expiring-Jobs
-- https://github.com/mperham/sidekiq/wiki/Pro-Reliability-Client
-- https://github.com/mperham/sidekiq/wiki/Pro-Reliability-Server
-- https://github.com/mperham/sidekiq/wiki/Reliability
-- https://github.com/mperham/sidekiq/wiki/Ent-Periodic-Jobs
+Currently, we only support a limited subset of features provided by Sidekiq and it's ecosystem. We support, locked jobs, delayed jobs, retried jobs, dead jobs and normal jobs. Anything outside of that is not _explicitly_ supported but may still function. We also explicitly won't work with [Sidekiq's](https://github.com/mperham/sidekiq/wiki/Pro-Expiring-Jobs) expiring jobs. If you are interested in support for additional features, please open an issue.
 
 ## Usage
 
