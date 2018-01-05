@@ -3,6 +3,7 @@ require 'bundler/setup'
 Bundler.require(:default, :test, :development)
 
 require 'minitest/autorun'
+require 'minitest/pride'
 require 'minitest/unit'
 
 require 'transfer_jobs'
