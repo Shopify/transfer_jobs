@@ -5,7 +5,7 @@ class ResqueTransfer
 
   AlreadyRunning = Class.new(StandardError)
 
-  attr_reader :progress, :source_redis, :dest_redis, :logger
+  attr_reader :source_redis, :dest_redis, :logger
 
   cattr_accessor(:lock_wait_time) { 1.minute }
 
@@ -19,11 +19,9 @@ class ResqueTransfer
 
   def recover
     with_lock(source_redis) do
-      with_progress do |progress|
-        recover_queued_jobs(progress).transfer(&method(:queue_transfer))
-        recover_old_scheduled_jobs(progress).transfer(&method(:filter))
-        recover_new_scheduled_jobs(progress).transfer(&method(:filter))
-      end
+      recover_queued_jobs.transfer(&method(:queue_transfer))
+      recover_old_scheduled_jobs.transfer(&method(:filter))
+      recover_new_scheduled_jobs.transfer(&method(:filter))
     end
   end
 
@@ -40,54 +38,32 @@ class ResqueTransfer
         source: ResqueQueue.new(redis: source.redis, key: source.queue_key(queue)),
         dest:   ResqueQueue.new(redis: dest.redis, key: dest.queue_key(queue)),
         logger: logger,
-        progress: progress,
       ).transfer(&method(:filter))
     end
   end
 
-  def recover_queued_jobs(progress)
+  def recover_queued_jobs
     MultiQueueMover.new(
       source: RedisJobSet.new(redis: source_redis),
       dest: RedisJobSet.new(redis: dest_redis),
       logger: logger,
-      progress: progress,
     )
   end
 
-  def recover_old_scheduled_jobs(progress)
+  def recover_old_scheduled_jobs
     MultiQueueMover.new(
       source: RedisScheduledSet.new(redis: source_redis),
       dest: RedisScheduledSet.new(redis: dest_redis),
       logger: logger,
-      progress: progress,
     )
   end
 
-  def recover_new_scheduled_jobs(progress)
+  def recover_new_scheduled_jobs
     QueueMover.new(
       source: ResqueDelayedQueue.new(redis: source_redis),
       dest:   ResqueDelayedQueue.new(redis: dest_redis),
       logger: logger,
-      progress: progress
     )
-  end
-
-  def with_progress
-    stores = Progressrus.stores.dup
-    Progressrus.stores.clear
-    Progressrus.stores << Progressrus::Store::Redis.new(dest_redis.redis)
-
-    total = RedisJobSet.new(redis: source_redis).size + RedisScheduledSet.new(redis: source_redis).size + ResqueDelayedQueue.new(redis: source_redis).size
-    progress = Progressrus.new(scope: :maintenance, name: "TransferJobs", total: total)
-    logger.info "Progress for processing ~#{progress.total} entries is logged to https://app.shopify.com/services/internal/background_job_progress"
-    yield(progress)
-  ensure
-    progress.complete
-
-    Progressrus.stores.clear
-    stores.each do |progress_store|
-      Progressrus.stores << progress_store
-    end
   end
 
   def with_lock(redis, &block)

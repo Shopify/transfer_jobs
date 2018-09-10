@@ -121,7 +121,6 @@ class TransferJobs::SidekiqMoverTest < TransferJobsTestCase
       source: TransferJobs::SidekiqDelayedQueue.new(key: queue, redis: @source),
       dest: TransferJobs::SidekiqDelayedQueue.new(key: queue, redis: @dest),
       logger: Logger.new('/dev/null'),
-      progress: Progressrus.new,
     ).transfer { true }
   end
 
@@ -130,7 +129,6 @@ class TransferJobs::SidekiqMoverTest < TransferJobsTestCase
       source: TransferJobs::SidekiqQueue.new(redis: @source, key: "queue:#{queue}"),
       dest:   TransferJobs::SidekiqQueue.new(redis: @dest, key: "queue:#{queue}"),
       logger: Logger.new('/dev/null'),
-      progress: Progressrus.new,
     ).transfer { true }
   end
 end

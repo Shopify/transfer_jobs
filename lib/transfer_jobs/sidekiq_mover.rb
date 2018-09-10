@@ -2,13 +2,12 @@
 module TransferJobs
   class SidekiqMover
     # TODO(zen): expose batch api in Status, Locking, LockQueue and use that instead
-    attr_reader :source, :dest, :logger, :progress
+    attr_reader :source, :dest, :logger
 
-    def initialize(source:, dest:, logger:, progress:)
+    def initialize(source:, dest:, logger:)
       @source = source
       @dest = dest
       @logger = logger
-      @progress = progress # remove that
     end
 
     def self.shutdown=(bool)
@@ -31,7 +30,6 @@ module TransferJobs
         raise Interrupt if self.class.shutdown
 
         jobs_to_move = batch.select do |job, _|
-          progress.tick
           filter.call(job)
         end
 
