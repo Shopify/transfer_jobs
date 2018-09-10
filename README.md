@@ -23,12 +23,6 @@ import 'transfer_jobs/tasks/resque.rake'
 
 The rake tasks have secondary dependencies implied by their names. They are detailed in the section relevant to your job system.
 
-### Optional Dependencies
-
-There are several optional dependencies that enable quality-of-life features.
-
-- Progressrus: Including the `progressrus` gem enables progress tracking during your transfers.
-
 ## Resque
 
 Resque support is currently in the works.

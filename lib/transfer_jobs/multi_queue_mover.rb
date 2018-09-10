@@ -1,16 +1,15 @@
 # frozen_string_literal: true
 module TransferJobs
   class MultiQueueMover
-    attr_reader :source, :dest, :logger, :progress
+    attr_reader :source, :dest, :logger
 
     # Abstracts over iteration of all resque queues:
     # For resque this could be {low, maintennace, payment-pod1, ...}
     # For scheduled jobs, this could be {scheduled:1, schedueld:38293892, ...}
-    def initialize(source:, dest:, logger:, progress:)
+    def initialize(source:, dest:, logger:)
       @source = source
       @dest = dest
       @logger = logger
-      @progress = progress
     end
 
     def transfer(&transfer)

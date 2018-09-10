@@ -8,5 +8,5 @@ group :test do
   gem 'timecop'
   gem 'rubocop'
   gem 'minitest-around'
-  gem 'progressrus'
+  gem 'concurrent-ruby'
 end
